@@ -1,0 +1,33 @@
+# Runs the morning note every day at 07:00. Kubernetes retries it if it fails.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sleep-morning-note
+  namespace: sleep-platform
+  labels: {owner: sleep-platform, cost-centre: personal-learning}
+spec:
+  schedule: "0 7 * * *"
+  timeZone: "Europe/London"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: note
+              image: sleep-slo:local
+              imagePullPolicy: IfNotPresent
+              env:
+                - {name: SLEEP_CONFIG, value: /config/config.json}
+              resources:
+                requests: {cpu: 50m, memory: 64Mi}
+                limits: {cpu: 200m, memory: 128Mi}
+              volumeMounts:
+                - {name: config, mountPath: /config}
+          volumes:
+            - name: config
+              configMap: {name: sleep-slo-config}

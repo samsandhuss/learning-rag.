@@ -1,0 +1,8 @@
+{
+  "target_sleep_minutes": 450,
+  "bedtime_cutoff": "00:30",
+  "slo_target": 0.80,
+  "window_days": 30,
+  "owner": "sleep-platform",
+  "cost_centre": "personal-learning"
+}

@@ -1,6 +1,13 @@
 # learning-rag
 
-Learning notes → ChromaDB vector database, with retrieval evaluation built in.
+Hands-on prototypes I build to learn AI and platform engineering by doing.
+
+| Project | What it shows |
+|---|---|
+| **This folder** | Learning notes → ChromaDB vector database, with retrieval evaluation built in |
+| [`sleep-slo/`](sleep-slo/) | My sleep run like a production service: Service Level Objectives, error budget, evaluation gate, ChromaDB, Kubernetes, Terraform and CI/CD |
+
+## Learning notes → ChromaDB
 
 One command loads my notes, splits them into chunks, embeds them, stores them in ChromaDB, runs a set of test questions, scores how well the search found the right note, and opens an HTML report.
 

@@ -1,0 +1,73 @@
+# CI/CD for the sleep morning note.
+# Every push: run the note, run the evaluation gate, check the Infrastructure as Code, build the container.
+name: sleep-slo
+
+on:
+  push:
+    paths: ["sleep-slo/**", ".github/workflows/sleep-slo.yml"]
+  pull_request:
+    paths: ["sleep-slo/**"]
+  workflow_dispatch:
+    inputs:
+      bedtime_cutoff:
+        description: "Bedtime cut-off (HH:MM)"
+        default: "00:30"
+      target_hours:
+        description: "Target hours of sleep"
+        default: "7.5"
+      slo_target:
+        description: "Service Level Objective: share of good nights (0-1)"
+        default: "0.8"
+
+defaults:
+  run:
+    working-directory: sleep-slo
+
+jobs:
+  note-and-eval-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - name: Generate the morning note (synthetic data, thresholds from the Run button)
+        run: python sleep_slo.py
+        env:
+          GIT_SHA: ${{ github.sha }}
+          BEDTIME_CUTOFF: ${{ inputs.bedtime_cutoff }}
+          TARGET_HOURS: ${{ inputs.target_hours }}
+          SLO_TARGET: ${{ inputs.slo_target }}
+      - name: Show the note on the run page
+        run: cat out/note.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Evaluation gate (blocks the release if any case fails)
+        run: |
+          python evals/run_evals.py | tee eval.txt
+          { echo; echo "### Evaluation gate"; echo '```'; cat eval.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the evidence (note, audit record, eval results)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-${{ github.sha }}
+          path: sleep-slo/out/
+
+  infrastructure-as-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Format check
+        run: terraform -chdir=terraform fmt -check -recursive
+        continue-on-error: true
+      - name: Init and validate
+        run: |
+          terraform -chdir=terraform init -backend=false
+          terraform -chdir=terraform validate
+
+  container:
+    needs: note-and-eval-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (the evaluation gate runs again inside the build)
+        run: docker build -t sleep-slo:${{ github.sha }} .
