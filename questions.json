@@ -1,0 +1,10 @@
+[
+  {"q": "How do I know if a model is just memorising its training data?", "expect": "04-evaluating-ai.md"},
+  {"q": "What does a vector database actually do?", "expect": "02-embeddings-and-vector-databases.md"},
+  {"q": "Why give the model chunks of my own documents before it answers?", "expect": "03-rag.md"},
+  {"q": "What evidence do auditors expect for a validated system?", "expect": "05-gxp-and-validation.md"},
+  {"q": "How should a platform product owner decide backlog order?", "expect": "06-platform-product-ownership.md"},
+  {"q": "What does attention do inside a transformer?", "expect": "01-how-llms-work.md"},
+  {"q": "What does ALCOA+ stand for?", "expect": "05-gxp-and-validation.md"},
+  {"q": "How do I measure whether retrieval found the right document?", "expect": "04-evaluating-ai.md"}
+]
